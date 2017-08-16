@@ -126,7 +126,7 @@ func generateFilesFromThis(text string, filename_base string) {
 				} else {
 					filename += ".md"
 				}
-				inlineContent = "---\npost: \n---\n\n" + inlineContent
+				inlineContent = "<!-- post: -->\n\n" + inlineContent
 				for a := 0; a < len(inlineContent)-3; a++ {
 					preInlineContent := ""
 					var l, r int
@@ -158,7 +158,7 @@ func generateFilesFromThis(text string, filename_base string) {
 									code_filename += "code"
 								}
 
-								preInlineContent = "---\nlayout: code\npost: " + filename + "\n---\n\n" + preInlineContent
+								preInlineContent = "<!-- layout: code\npost: " + filename + " -->\n" + preInlineContent
 
 								code_filename = strings.Trim(strings.Trim(code_filename, "\n"), "<") + ".md"
 
@@ -217,7 +217,7 @@ func getFileName(filename string) string {
 	filename = strings.Trim(filename, "\n")
 	filename = strings.Trim(filename, "\\")
 	for i := 0; i < len(filename); i++ {
-		if filename[i] == '/' || filename[i] == '$'||filename[i]=='*' || filename[i]==':' {
+		if filename[i] == '/' || filename[i] == '$'||filename[i]=='*' || filename[i]==':'|| filename[i]=='?'|| filename[i]=='!' {
 			filename = filename[:i]
 			if i < len(filename)-1 {
 				filename += filename[i+1:]
