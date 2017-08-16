@@ -16,13 +16,13 @@ var (
 	flagParse bool
 )
 
-func init(){
+func init() {
 	flag.StringVar(&flagPath, "p", "", "project path")
 	flag.BoolVar(&flagParse, "parse", false, "runs starter to do nothing related to starter")
 
 }
 
-func main(){
+func main() {
 	flag.Parse()
 
 	if flagParse {
@@ -90,7 +90,7 @@ func generateFilesFromThis(text string, filename_base string) {
 
 	for i := 1; i < len(text); i++ {
 		if text[i] == '#' && text[i-1] == '\n' {
-			filename = ""
+			filename = filename_base+"_"
 			inlineContent = ""
 			for ; i < len(text); i++ {
 				if text[i] == '#' || text[i] == ' ' || text[i] == '\n' {
@@ -121,7 +121,12 @@ func generateFilesFromThis(text string, filename_base string) {
 			}
 
 			if inlineContent != "" {
-
+				if len(filename) > 59 {
+					filename = filename[:59] + ".md"
+				} else {
+					filename += ".md"
+				}
+				inlineContent = "---\npost: \n---\n\n" + inlineContent
 				for a := 0; a < len(inlineContent)-3; a++ {
 					preInlineContent := ""
 					var l, r int
@@ -142,7 +147,7 @@ func generateFilesFromThis(text string, filename_base string) {
 							}
 							preInlineContent = preInlineContent[3:][:len(preInlineContent)-7]
 							if len(preInlineContent) > 7 {
-								code_filename := "code-"+filename + "-"
+								code_filename := "code_" + filename[:len(filename)-3] + "-"
 								if len(preInlineContent) > 15 {
 									for k := 3; k <= 15; k++ {
 										if unicode.IsLower(rune(preInlineContent[k])) {
@@ -153,7 +158,7 @@ func generateFilesFromThis(text string, filename_base string) {
 									code_filename += "code"
 								}
 
-								preInlineContent = "---\nlayout: code\n---\n" + preInlineContent
+								preInlineContent = "---\nlayout: code\npost: " + filename + "\n---\n\n" + preInlineContent
 
 								code_filename = strings.Trim(strings.Trim(code_filename, "\n"), "<") + ".md"
 
@@ -177,32 +182,26 @@ func generateFilesFromThis(text string, filename_base string) {
 								if len(code_filename) > 59 {
 									code_filename = code_filename[:59] + ".md"
 								}
-								include:=filepath.Join(filename_base, code_filename)
+								include := filepath.Join(filename_base, code_filename)
 								err := ioutil.WriteFile(filepath.Join(filename_base, code_filename), []byte(preInlineContent), 0644)
 								if err != nil {
-									fmt.Printf("You fucked up: ", err, "\n\n\n")
+									fmt.Println("You fucked up: ", err, "\n\n\n")
 								}
-
-								fmt.Printf(code_filename)
-								inlineContent = inlineContent[:l] + "\n\n{%include _inlines/"+include+" %}\n\n" + inlineContent[r+1:]
+								fmt.Println(code_filename)
+								inlineContent = inlineContent[:l] + "\n\n{%include _inlines/" + include + " %}\n\n" + inlineContent[r+1:]
 								r = 0
 								l = 0
-
 							}
 						}
 					}
 				}
-			}
 
-			filename += ".md"
-			if len(filename) > 59 {
-				filename = filename[:59] + ".md"
-			}
-			fmt.Printf(filename)
-			//common.PrintlnWarning(inlineContent)
-			err := ioutil.WriteFile(filepath.Join(filename_base, filename), []byte(inlineContent), 0644)
-			if err != nil {
-				fmt.Printf("You fucked up: ", err, "\n\n\n")
+				fmt.Println(filename)
+				//common.PrintlnWarning(inlineContent)
+				err := ioutil.WriteFile(filepath.Join(filename_base, filename), []byte(inlineContent), 0644)
+				if err != nil {
+					fmt.Println("You fucked up: ", err, "\n\n\n")
+				}
 			}
 
 		}
