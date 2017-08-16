@@ -2,11 +2,11 @@ package main
 
 import (
 	"flag"
-	"path/filepath"
-	"os"
-	"io/ioutil"
-	"github.com/lunny/html2md"
 	"fmt"
+	"github.com/lunny/html2md"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 	"strings"
 	"unicode"
 )
@@ -90,7 +90,7 @@ func generateFilesFromThis(text string, filename_base string) {
 
 	for i := 1; i < len(text); i++ {
 		if text[i] == '#' && text[i-1] == '\n' {
-			filename = filename_base+"_"
+			filename = filename_base + "_"
 			inlineContent = ""
 			for ; i < len(text); i++ {
 				if text[i] == '#' || text[i] == ' ' || text[i] == '\n' {
