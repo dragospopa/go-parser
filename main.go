@@ -217,7 +217,7 @@ func getFileName(filename string) string {
 	filename = strings.Trim(filename, "\n")
 	filename = strings.Trim(filename, "\\")
 	for i := 0; i < len(filename); i++ {
-		if filename[i] == '/' || filename[i] == '$' {
+		if filename[i] == '/' || filename[i] == '$'||filename[i]=='*' || filename[i]==':' {
 			filename = filename[:i]
 			if i < len(filename)-1 {
 				filename += filename[i+1:]
