@@ -226,6 +226,8 @@ func getFileName(filename string) string {
 	}
 	filename = strings.Trim(filename, "/")
 	filename = strings.Trim(filename, "$")
+	filename = strings.Trim(filename, "*")
+	filename = strings.Trim(filename, ":")
 
 	return filename
 }
