@@ -34,9 +34,9 @@ func main() {
 			filepath.Walk(flagPath, func(path string, info os.FileInfo, err error) error {
 				if !info.IsDir() {
 
-					_, _ = os.Open(info.Name())
+					_, _ = os.Open(path)
 
-					text, _ := ioutil.ReadFile(flagPath + info.Name())
+					text, _ := ioutil.ReadFile(path)
 
 					html2md.AddRule("pre", &html2md.Rule{
 						Patterns: []string{"pre"},
