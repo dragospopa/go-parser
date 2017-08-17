@@ -47,7 +47,7 @@ func main() {
 					ok1++
 					laster := strings.Split(folderPath, "/")[len(strings.Split(folderPath, "/"))-1]
 					for k := 0; k < len(largerVisited); k++ {
-						fmt.Println("**** " + largerVisited[k] + " ****\n")
+						//fmt.Println("**** " + largerVisited[k] + " ****\n")
 						if largerVisited[k] == laster {
 							return nil
 						}
@@ -57,10 +57,10 @@ func main() {
 						//INSIDE PRODUCTS
 						filepath.Walk(childFolderPath, func(path string, info os.FileInfo, err error) error {
 							ok2 ++
-							fmt.Println("THIS IS " + childFolderPath)
+							//fmt.Println("THIS IS " + childFolderPath)
 							last := strings.Split(childFolderPath, "/")[len(strings.Split(childFolderPath, "/"))-1]
 							for k := 0; k < len(visited); k++ {
-								fmt.Println("---->" + visited[k] + "<-----\n")
+								//fmt.Println("---->" + visited[k] + "<-----\n")
 								if visited[k] == last {
 									return nil
 								}
@@ -68,7 +68,7 @@ func main() {
 							largerVisited = append(largerVisited, info.Name())
 							if info.IsDir() && ok2 > 1 {
 								childchildFolderPath := filepath.Join(childFolderPath, info.Name())
-								fmt.Println(childchildFolderPath)
+								//fmt.Println(childchildFolderPath)
 								visited = append(visited, info.Name())
 								//INSIDE TOPICS
 								includes = []string{}
