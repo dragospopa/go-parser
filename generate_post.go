@@ -16,10 +16,7 @@ func generatePost(path string, includes []string) {
 		fmt.Errorf("you deffo are not in the right place to call this.\n")
 	}
 
-	fmt.Println(tree + "\n" + cat + "\n" + product + "\n" + topic + "\n")
-
-	productPath, catPath, topicPath := generateTargetPath(tree, product, cat, topic)
-	fmt.Println(productPath + "\n" + catPath + "\n" + topicPath + "\n")
+	productPath, catPath := generateTargetPath(tree, product, cat, topic)
 
 	checkStructure(productPath, catPath)
 
@@ -69,9 +66,9 @@ func getStuffFromPath(path string) (string, string, string, string, error) {
 	return tree, cat, product, topic, nil
 }
 
-func generateTargetPath(tree, product, cat, topic string) (string, string, string) {
+func generateTargetPath(tree, product, cat, topic string) (string, string) {
 	product = "_" + product
-	return filepath.Join(tree, product), filepath.Join(tree, product, cat), filepath.Join(tree, product, cat, topic)
+	return filepath.Join(tree, product), filepath.Join(tree, product, cat)
 }
 
 func exists(path string) (bool, error) {

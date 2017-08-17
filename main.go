@@ -26,6 +26,7 @@ func init() {
 
 func main() {
 	flag.Parse()
+	var ok int
 
 	if flagMove {
 		// OUTPUT: CREATES FILE NAMED BY THE NAME OF THE FOLDER IN THE RIGHT PLACE IN STRUCTURE OF THE ACTUAL POSTS(OR AS CLOSE AS POSSBILE)
@@ -36,20 +37,24 @@ func main() {
 		var includes []string
 		folderPath, _ := os.Getwd()
 		filepath.Walk(folderPath, func(path string, info os.FileInfo, err error) error {
-			if !info.IsDir() {
-				_, _ = os.Open(info.Name())
-				codeFile, _ := regexp.Match("code", []byte(info.Name()[:5]))
-				if !codeFile {
-					includes = append(includes, info.Name())
-				}
+			ok ++
+			if info.IsDir() && ok > 1 {
+				childFolderPath := filepath.Join(folderPath, info.Name())
+				fmt.Println(childFolderPath)
+				filepath.Walk(childFolderPath, func(path string, info os.FileInfo, err error) error {
+					if !info.IsDir() {
+						_, _ = os.Open(info.Name())
+						codeFile, _ := regexp.Match("code", []byte(info.Name()[:5]))
+						if !codeFile {
+							includes = append(includes, info.Name())
+						}
+					}
+					return nil
+				})
+				generatePost(childFolderPath, includes)
 			}
 			return nil
 		})
-		_, err := os.Getwd()
-		if err != nil {
-			fmt.Errorf("YOU GOT AN ERROR, YO: ", err)
-		}
-		generatePost(folderPath, includes)
 	}
 
 	if flagParse {
