@@ -26,7 +26,8 @@ func init() {
 
 func main() {
 	flag.Parse()
-	var ok int
+	var ok1, ok2, ok int
+	var visited, largerVisited []string
 
 	if flagMove {
 		// OUTPUT: CREATES FILE NAMED BY THE NAME OF THE FOLDER IN THE RIGHT PLACE IN STRUCTURE OF THE ACTUAL POSTS(OR AS CLOSE AS POSSBILE)
@@ -35,24 +36,62 @@ func main() {
 		// {% list of includes that matches the number of files that are note code %} - path should be completed
 
 		var includes []string
-		folderPath, _ := os.Getwd()
-		filepath.Walk(folderPath, func(path string, info os.FileInfo, err error) error {
-			ok ++
+		fPath, _ := os.Getwd()
+		//EVERYTHING
+		filepath.Walk(fPath, func(path string, info os.FileInfo, err error) error {
+			ok++
 			if info.IsDir() && ok > 1 {
-				childFolderPath := filepath.Join(folderPath, info.Name())
-				fmt.Println(childFolderPath)
-				filepath.Walk(childFolderPath, func(path string, info os.FileInfo, err error) error {
-					if !info.IsDir() {
-						_, _ = os.Open(info.Name())
-						codeFile, _ := regexp.Match("code", []byte(info.Name()[:5]))
-						if !codeFile {
-							includes = append(includes, info.Name())
+				folderPath := filepath.Join(fPath, info.Name())
+				//INSIDE CATEGORIES
+				filepath.Walk(folderPath, func(path string, info os.FileInfo, err error) error {
+					ok1++
+					laster := strings.Split(folderPath, "/")[len(strings.Split(folderPath, "/"))-1]
+					for k := 0; k < len(largerVisited); k++ {
+						fmt.Println("**** " + largerVisited[k] + " ****\n")
+						if largerVisited[k] == laster {
+							return nil
 						}
 					}
+					if info.IsDir() && ok1 > 1 {
+						childFolderPath := filepath.Join(folderPath, info.Name())
+						//INSIDE PRODUCTS
+						filepath.Walk(childFolderPath, func(path string, info os.FileInfo, err error) error {
+							ok2 ++
+							fmt.Println("THIS IS " + childFolderPath)
+							last := strings.Split(childFolderPath, "/")[len(strings.Split(childFolderPath, "/"))-1]
+							for k := 0; k < len(visited); k++ {
+								fmt.Println("---->" + visited[k] + "<-----\n")
+								if visited[k] == last {
+									return nil
+								}
+							}
+							largerVisited = append(largerVisited, info.Name())
+							if info.IsDir() && ok2 > 1 {
+								childchildFolderPath := filepath.Join(childFolderPath, info.Name())
+								fmt.Println(childchildFolderPath)
+								visited = append(visited, info.Name())
+								//INSIDE TOPICS
+								includes = []string{}
+								filepath.Walk(childchildFolderPath, func(path string, info os.FileInfo, err error) error {
+									if !info.IsDir() {
+										_, _ = os.Open(info.Name())
+										codeFile, _ := regexp.Match("code", []byte(info.Name()[:5]))
+										if !codeFile {
+											includes = append(includes, info.Name())
+										}
+									}
+									return nil
+								})
+								generatePost(childchildFolderPath, includes)
+							}
+							return nil
+						})
+					}
+					ok2=0
 					return nil
 				})
-				generatePost(childFolderPath, includes)
 			}
+			ok1=0
 			return nil
 		})
 	}
