@@ -14,16 +14,40 @@ import (
 var (
 	flagPath  string
 	flagParse bool
+	flagMove  bool
 )
 
 func init() {
 	flag.StringVar(&flagPath, "p", "", "project path")
+	flag.BoolVar(&flagMove, "move", false, "call it in the exact folder where you want stuff to happen")
 	flag.BoolVar(&flagParse, "parse", false, "runs starter to do nothing related to starter")
-
 }
 
 func main() {
 	flag.Parse()
+
+	if flagMove  {
+		// OUTPUT: CREATES FILE NAMED BY THE NAME OF THE FOLDER IN THE RIGHT PLACE IN STRUCTURE OF THE ACTUAL POSTS(OR AS CLOSE AS POSSBILE)
+		// THE FILE HAS THE HEADER COMPLETED AS MUCH AS HUMANLY POSSIBLE
+		// {% assign product=""[NAME_OF_THE_PRODUCT]" %} - taken from the path
+		// {% list of includes that matches the number of files that are note code %} - path should be completed
+
+		var includes []string
+		folderPath, _ := os.Getwd()
+		filepath.Walk(folderPath, func(path string, info os.FileInfo, err error) error {
+			if !info.IsDir() {
+				_, _ = os.Open(info.Name())
+
+				includes = append(includes, info.Name())
+			}
+			return nil
+		})
+		_, err :=os.Getwd()
+		if err != nil {
+			fmt.Errorf("YOU GOT AN ERROR, YO: ", err)
+		}
+		generatePost(folderPath, includes)
+	}
 
 	if flagParse {
 
@@ -217,7 +241,7 @@ func getFileName(filename string) string {
 	filename = strings.Trim(filename, "\n")
 	filename = strings.Trim(filename, "\\")
 	for i := 0; i < len(filename); i++ {
-		if filename[i] == '/' || filename[i] == '$'||filename[i]=='*' || filename[i]==':'|| filename[i]=='?'|| filename[i]=='!' {
+		if filename[i] == '/' || filename[i] == '$' || filename[i] == '*' || filename[i] == ':' || filename[i] == '?' || filename[i] == '!' {
 			filename = filename[:i]
 			if i < len(filename)-1 {
 				filename += filename[i+1:]
