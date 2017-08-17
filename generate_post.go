@@ -6,6 +6,8 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"gopkg.in/yaml.v2"
+	"io/ioutil"
 )
 
 func generatePost(path string, includes []string) {
@@ -19,9 +21,33 @@ func generatePost(path string, includes []string) {
 	productPath, catPath, topicPath := generateTargetPath(tree, product, cat, topic)
 	fmt.Println(productPath + "\n" + catPath + "\n" + topicPath + "\n")
 
-	checkStructure(productPath, catPath, topicPath)
+	checkStructure(productPath, catPath)
 
-	
+	header := Header{
+		"post",
+		"one-col",
+		topic,
+		cat,
+		"",
+		"false",
+		"",
+	}
+
+	template, err := yaml.Marshal(header)
+	text := "---\n" + string(template) + "\n---\n"
+	text += "{% assign product = \"" + product + "\" %}\n\n"
+
+	for i := 0; i < len(includes); i++ {
+		text += "{% include _inlines/" + cat + "/" + product + "/" + topic + "/" + includes[i] + " %}\n"
+	}
+
+	filename := topic +".md"
+	targetPath := filepath.Join(catPath, filename)
+
+	err =ioutil.WriteFile(targetPath, []byte(text), 0777)
+	if err!=nil{
+		fmt.Errorf("STUFF CRASHED WHEN TRYING TO WRITE - srry m8.\n")
+	}
 }
 
 func getStuffFromPath(path string) (string, string, string, string, error) {
@@ -59,19 +85,14 @@ func exists(path string) (bool, error) {
 	return true, err
 }
 
-func checkStructure(productPath, catPath, topicPath string){
+func checkStructure(productPath, catPath string) {
 
 	okProduct, _ := exists(productPath)
 	okCat, _ := exists(catPath)
-	okTopic, _ := exists(topicPath)
 	if !okProduct {
 		os.Mkdir(productPath, 0777)
 		os.Mkdir(catPath, 0777)
-		os.Mkdir(topicPath, 0777)
 	} else if !okCat {
 		os.Mkdir(catPath, 0777)
-		os.Mkdir(topicPath, 0777)
-	} else if !okTopic {
-		os.Mkdir(topicPath, 0777)
 	}
 }

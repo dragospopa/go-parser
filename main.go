@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 	"unicode"
+	"regexp"
 )
 
 var (
@@ -26,7 +27,7 @@ func init() {
 func main() {
 	flag.Parse()
 
-	if flagMove  {
+	if flagMove {
 		// OUTPUT: CREATES FILE NAMED BY THE NAME OF THE FOLDER IN THE RIGHT PLACE IN STRUCTURE OF THE ACTUAL POSTS(OR AS CLOSE AS POSSBILE)
 		// THE FILE HAS THE HEADER COMPLETED AS MUCH AS HUMANLY POSSIBLE
 		// {% assign product=""[NAME_OF_THE_PRODUCT]" %} - taken from the path
@@ -37,12 +38,14 @@ func main() {
 		filepath.Walk(folderPath, func(path string, info os.FileInfo, err error) error {
 			if !info.IsDir() {
 				_, _ = os.Open(info.Name())
-
-				includes = append(includes, info.Name())
+				codeFile, _ := regexp.Match("code", []byte(info.Name()[:5]))
+				if !codeFile {
+					includes = append(includes, info.Name())
+				}
 			}
 			return nil
 		})
-		_, err :=os.Getwd()
+		_, err := os.Getwd()
 		if err != nil {
 			fmt.Errorf("YOU GOT AN ERROR, YO: ", err)
 		}
