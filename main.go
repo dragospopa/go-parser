@@ -16,12 +16,14 @@ var (
 	flagPath  string
 	flagParse bool
 	flagMove  bool
+	flagRelate bool
 )
 
 func init() {
 	flag.StringVar(&flagPath, "p", "", "project path")
 	flag.BoolVar(&flagMove, "move", false, "call it in the exact folder where you want stuff to happen")
 	flag.BoolVar(&flagParse, "parse", false, "runs starter to do nothing related to starter")
+	flag.BoolVar(&flagRelate, "relate", false, "tries to work out where is what")
 }
 
 func main() {
@@ -97,7 +99,6 @@ func main() {
 	}
 
 	if flagParse {
-
 		//use -p to set dir
 
 		if flagPath != "" {
@@ -134,7 +135,51 @@ func main() {
 
 		return
 	}
+	if flagRelate {
+		fmt.Printf("\n")
+		if flagPath != "" {
+			mapperino := make(map[string][]string)
+			mappy := &mapperino
+			OperinoNoperino := make(map[string]int)
+			bop := &OperinoNoperino
+			filepath.Walk(flagPath, func( path string, info os.FileInfo, err error,) error {
+				if !info.IsDir() {
+					OperinoNoperinolocal := *bop
+					if _, ok := OperinoNoperinolocal[info.Name()]; ok {
+						OperinoNoperinolocal[info.Name()] ++
+					} else{
+						_, _ = os.Open(path)
+						text, e := ioutil.ReadFile(path)
+						if e != nil {
+							fmt.Printf(e.Error())
+						}
+						OperinoNoperino[info.Name()] = 1
+						lookForIncludes(string(text), info.Name(), mappy, path)
+					}
+				}
+				return nil
+			})
+			for inline, pages := range mapperino {
+				for _, page := range pages {
+				fmt.Printf(inline + "\n is used in \n" + page + "\n\n")
+				}
+			}
+		} else {
+			fmt.Printf("lol - give me a path usign the -p flag boii")
+		}
+		return
+	}
 }
+func lookForIncludes(text string, filename string, mapAddr *(map[string][]string), path string) {
+	r, _ := regexp.Compile("include (_inline.*md)")
+	res := r.FindAllStringSubmatch(text, -1)
+	for _, element := range res {
+		mapperino := *mapAddr
+		mapperino[element[1]] = append(mapperino[element[1]], path);
+	}
+
+}
+
 func generateFilesFromThis(text string, filename_base string) {
 	var inlineContent, filename string
 	if len(text) < 2 {
