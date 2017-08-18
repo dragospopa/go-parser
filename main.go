@@ -68,16 +68,21 @@ func main() {
 							largerVisited = append(largerVisited, info.Name())
 							if info.IsDir() && ok2 > 1 {
 								childchildFolderPath := filepath.Join(childFolderPath, info.Name())
-								//fmt.Println(childchildFolderPath)
+								fmt.Println(childchildFolderPath)
 								visited = append(visited, info.Name())
 								//INSIDE TOPICS
 								includes = []string{}
 								filepath.Walk(childchildFolderPath, func(path string, info os.FileInfo, err error) error {
 									if !info.IsDir() {
 										_, _ = os.Open(info.Name())
+										oldPath := filepath.Join(childchildFolderPath, info.Name())
+										newPath := filepath.Join(childchildFolderPath, getFileName(info.Name()))
+										os.Rename(oldPath, newPath)
 										codeFile, _ := regexp.Match("code", []byte(info.Name()[:5]))
 										if !codeFile {
-											includes = append(includes, info.Name())
+											file, _ := ioutil.ReadFile(newPath)
+											takeCareOfIncludes(string(file), newPath)
+											includes = append(includes, getFileName(info.Name()))
 										}
 									}
 									return nil
@@ -87,11 +92,11 @@ func main() {
 							return nil
 						})
 					}
-					ok2=0
+					ok2 = 0
 					return nil
 				})
 			}
-			ok1=0
+			ok1 = 0
 			return nil
 		})
 	}
@@ -280,7 +285,6 @@ func generateFilesFromThis(text string, filename_base string) {
 }
 
 func getFileName(filename string) string {
-
 	if !(unicode.IsLower(rune(filename[0])) || unicode.IsUpper(rune(filename[0]))) {
 		//		filename = filename[1:]
 	}
@@ -288,19 +292,72 @@ func getFileName(filename string) string {
 	filename = strings.Trim(filename, "\n")
 	filename = strings.Trim(filename, "\\")
 	for i := 0; i < len(filename); i++ {
-		if filename[i] == '/' || filename[i] == '$' || filename[i] == '*' || filename[i] == ':' || filename[i] == '?' || filename[i] == '!' {
-			filename = filename[:i]
+		if isSpecial(filename[i]) {
 			if i < len(filename)-1 {
-				filename += filename[i+1:]
+				filename = filename[:i] + filename[i+1:]
+			} else {
+				filename = filename[:i]
 			}
+			i--
 		}
 	}
-	filename = strings.Trim(filename, "/")
-	filename = strings.Trim(filename, "$")
-	filename = strings.Trim(filename, "*")
-	filename = strings.Trim(filename, ":")
 
 	return filename
+}
+func isSpecial(c byte) bool {
+	special := []byte{':', '{', '}', '[', ']', ',', '&', '*', '#', '?', '|', '<', '>', '=', '!', '%', '@', '\\', '/', '\'', '(', ')', '"'}
+	for i := 0; i < len(special); i++ {
+		if special[i] == c {
+			return true
+		}
+	}
+	return false
+}
+
+func takeCareOfIncludes(file string, fpath string) {
+	dirs := strings.Split(fpath, "/")
+	p := 0;
+	j := 0
+	for p = 0; p < len(dirs); p++ {
+		if dirs[p] == "_inlines" {
+			break
+		}
+	}
+	includePath := ""
+	tempIncludePath := ""
+	includedCode := ""
+	for ; p < len(dirs)-1; p++ {
+		includePath = filepath.Join(includePath, dirs[p])
+	}
+	lines := strings.Split(file, "\n")
+	for i := 0; i < len(lines); i++ {
+		includeLine, _ := regexp.MatchString("%include ", lines[i])
+		if includeLine {
+			includedCode = ""
+			for k := len(lines[i]) - 3; k >= 0; k-- {
+				if lines[i][k] == '/' {
+					break
+				} else {
+					includedCode = string(append([]byte(includedCode), lines[i][k]))
+				}
+			}
+			includedCode = reverse(includedCode)
+			includedCode = getFileName(includedCode)
+			//fmt.Println("THE CODE IN HERE IS: %s\n", includedCode)
+			tempIncludePath = filepath.Join(includePath, includedCode[:len(includedCode)-1])
+			for j = 0; j < len(lines[i]); j++ {
+				if lines[i][j] == '_' {
+					break
+				}
+			}
+			lines[i] = lines[i][:j] + tempIncludePath + " %}\n"
+		}
+	}
+	text := strings.Join(lines, "\n")
+	err := ioutil.WriteFile(fpath, []byte(text), 0777)
+	if err != nil {
+		fmt.Errorf("YOU GOT AN ERROR: %s\n", err)
+	}
 }
 
 func hasHeader(text string) bool {
@@ -310,4 +367,12 @@ func hasHeader(text string) bool {
 		}
 	}
 	return false
+}
+
+func reverse(s string) string {
+	r := []rune(s)
+	for i, j := 0, len(r)-1; i < len(r)/2; i, j = i+1, j-1 {
+		r[i], r[j] = r[j], r[i]
+	}
+	return string(r)
 }
