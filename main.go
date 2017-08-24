@@ -164,11 +164,12 @@ func main() {
 				}
 				return nil
 			})
-			for inline, pages := range mapperino {
+			fuckthis(mapperino)
+			/*for inline, pages := range mapperino {
 				for _, page := range pages {
-				fmt.Printf(inline + "\n is used in \n" + page + "\n\n")
+					fmt.Printf(inline + "\n is used in \n" + page + "\n\n")
 				}
-			}
+			}*/
 		} else {
 			fmt.Printf("lol - give me a path usign the -p flag boii")
 		}
