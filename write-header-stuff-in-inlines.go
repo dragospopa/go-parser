@@ -14,6 +14,7 @@ func fuckthis(mapperino map[string][]string) {
 		inline = filepath.Join("/Users/dragos/work/help/_includes", inline)
 		pagez := ""
 		for _, page := range pages {
+			page+="/"
 			dirs, _ := filepath.Split(page)
 			dirs = dirs[24:]
 			page = filepath.Join(dirs)
@@ -31,7 +32,7 @@ func fuckthis(mapperino map[string][]string) {
 		}
 		text, _ := ioutil.ReadFile(inline)
 		if len(text) > 3 {
-			text = []byte("<!-- usedin: " + pagez + " " + string(text[3:]))
+			text = []byte("<!-- usedin: " + pagez + " -->\n\n" + string(text[3:]))
 		}
 		err := ioutil.WriteFile(inline, text, 0777)
 		if err != nil {
