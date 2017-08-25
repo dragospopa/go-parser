@@ -5,6 +5,7 @@ import (
 	"os"
 	"io/ioutil"
 	"path/filepath"
+	"regexp"
 )
 
 const GITHUBPATH = "https://github.com/cloud66/help/edit/feature/inlines/_includes/"
@@ -14,7 +15,7 @@ func fuckthis(mapperino map[string][]string) {
 		inline = filepath.Join("/Users/dragos/work/help/_includes", inline)
 		pagez := ""
 		for _, page := range pages {
-			page+="/"
+			page += "/"
 			dirs, _ := filepath.Split(page)
 			dirs = dirs[24:]
 			page = filepath.Join(dirs)
@@ -31,8 +32,14 @@ func fuckthis(mapperino map[string][]string) {
 			fmt.Errorf("You obviously fucked up ...because...%s\n", er)
 		}
 		text, _ := ioutil.ReadFile(inline)
+		j := 0
+		for ; j < len(text); j++ {
+			if text[j] == '\n' {
+				break
+			}
+		}
 		if len(text) > 3 {
-			text = []byte("<!-- usedin: " + pagez + " -->\n\n" + string(text[3:]))
+			text = []byte("<!-- usedin: " + pagez + " -->\n\n" + string(text[j+1:]))
 		}
 		err := ioutil.WriteFile(inline, text, 0777)
 		if err != nil {
@@ -46,7 +53,7 @@ func populateGitLinks(mapperino map[string][]string) {
 	for page, includes := range mapperino {
 		gitlinks := "[ "
 		for _, include := range includes {
-			include = GITHUBPATH + include[:len(include)-3] + ".html"
+			include = "\"" + GITHUBPATH + include + "\""
 			if gitlinks == "[ " {
 				gitlinks += include
 			} else {
@@ -59,13 +66,28 @@ func populateGitLinks(mapperino map[string][]string) {
 			fmt.Errorf("broken.\n")
 			break
 		}
-		fmt.Println(gitlinks)
-		text, _ := ioutil.ReadFile(page)
-		text = []byte("---\n" + "gitlinks: " + gitlinks + "\n" + string(text[4:]))
-		err = ioutil.WriteFile(page, text, 0777)
-		if err!=nil{
-			fmt.Errorf("It didnt write!\n")
-			break
+		isCode, _ := regexp.Match("code_", []byte(gitlinks))
+		if !isCode {
+			fmt.Println(gitlinks)
+
+			text, _ := ioutil.ReadFile(page)
+			j := 0
+			for ; j < len(text); j++ {
+				if text[j] == '\n' {
+					break
+				}
+			}
+			for j=j+1; j<len(text);j++{
+				if text[j]=='\n'{
+					break
+				}
+			}
+			text = []byte("---\n" + "gitlinks: " + gitlinks + "\n" + string(text[j+1:]))
+			err = ioutil.WriteFile(page, text, 0777)
+			if err != nil {
+				fmt.Errorf("It didnt write!\n")
+				break
+			}
 		}
 	}
 }

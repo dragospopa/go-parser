@@ -10,6 +10,7 @@ import (
 	"strings"
 	"unicode"
 	"regexp"
+	"strconv"
 )
 
 var (
@@ -18,6 +19,7 @@ var (
 	flagMove   bool
 	flagRelate bool
 	flagGit    bool
+	flagMenu   bool
 )
 
 func init() {
@@ -26,6 +28,7 @@ func init() {
 	flag.BoolVar(&flagParse, "parse", false, "runs starter to do nothing related to starter")
 	flag.BoolVar(&flagRelate, "relate", false, "tries to work out where is what")
 	flag.BoolVar(&flagGit, "git", false, "populates stuff in the header of posts")
+	flag.BoolVar(&flagMenu, "menu", false, "populates the menu tags in the header of the posts")
 }
 
 func main() {
@@ -105,6 +108,35 @@ func main() {
 		})
 	}
 
+	if flagMenu {
+		if flagPath != "" {
+			mapperino := make(map[string][]string)
+			mappy := &mapperino
+			OperinoNoperino := make(map[string]int)
+			bop := &OperinoNoperino
+			filepath.Walk(flagPath, func(path string, info os.FileInfo, err error, ) error {
+				if !info.IsDir() {
+					OperinoNoperinolocal := *bop
+					if _, ok := OperinoNoperinolocal[path]; ok {
+						OperinoNoperinolocal[path] ++
+					} else {
+						_, _ = os.Open(path)
+						text, e := ioutil.ReadFile(path)
+						if e != nil {
+							fmt.Printf(e.Error())
+						}
+						OperinoNoperino[path] = 1
+						populateIncludes(string(text), info.Name(), mappy, path)
+					}
+				}
+				return nil
+			})
+			writeMenus(mapperino)
+		} else {
+			fmt.Errorf("give me a path, boii!\n")
+		}
+	}
+
 	if flagParse {
 		//use -p to set dir
 
@@ -152,15 +184,15 @@ func main() {
 			filepath.Walk(flagPath, func(path string, info os.FileInfo, err error, ) error {
 				if !info.IsDir() {
 					OperinoNoperinolocal := *bop
-					if _, ok := OperinoNoperinolocal[info.Name()]; ok {
-						OperinoNoperinolocal[info.Name()] ++
+					if _, ok := OperinoNoperinolocal[path]; ok {
+						OperinoNoperinolocal[path] ++
 					} else {
 						_, _ = os.Open(path)
 						text, e := ioutil.ReadFile(path)
 						if e != nil {
 							fmt.Printf(e.Error())
 						}
-						OperinoNoperino[info.Name()] = 1
+						OperinoNoperino[path] = 1
 						if !flagGit {
 							lookForIncludes(string(text), info.Name(), mappy, path)
 						} else {
@@ -188,7 +220,18 @@ func lookForIncludes(text string, filename string, mapAddr *(map[string][]string
 		mapperino := *mapAddr
 		mapperino[element[1]] = append(mapperino[element[1]], path);
 	}
+}
 
+func populateIncludes(text string, filename string, mapAddr *(map[string][]string), path string) {
+	r, _ := regexp.Compile("\n(.*include _inline.*)\n")
+	res := r.FindAllStringSubmatch(text, -1)
+	i:=0
+	for _, element := range res {
+		mapperino := *mapAddr
+		i++
+		element[1] = "<a name=\""+strconv.Itoa(i)+"\">"+element[1]+"</a>"
+		mapperino[path] = append(mapperino[path], element[1])
+	}
 }
 
 func lookForGitIncludes(text string, filename string, mapAddr *(map[string][]string), path string) {
@@ -196,7 +239,7 @@ func lookForGitIncludes(text string, filename string, mapAddr *(map[string][]str
 	res := r.FindAllStringSubmatch(text, -1)
 	for _, element := range res {
 		mapperino := *mapAddr
-		mapperino[path]=append(mapperino[path], element[1])
+		mapperino[path] = append(mapperino[path], element[1])
 	}
 
 }
