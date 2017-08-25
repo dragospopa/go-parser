@@ -223,7 +223,7 @@ func lookForIncludes(text string, filename string, mapAddr *(map[string][]string
 }
 
 func populateIncludes(text string, filename string, mapAddr *(map[string][]string), path string) {
-	r, _ := regexp.Compile("\n(.*include _inline.*)\n")
+	r, _ := regexp.Compile("\n(.*include _inline.*)")
 	res := r.FindAllStringSubmatch(text, -1)
 	i:=0
 	for _, element := range res {
